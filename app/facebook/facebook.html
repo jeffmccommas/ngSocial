@@ -1,37 +1,60 @@
 <div class="row" ng-controller="FacebookCtrl">
   <div class="col-md-4">
     <h4>{{welcomeMessage}}</h4>
+    <div ng-if="isLoggedIn == true">
+      <a href="{{user.link}}" target="_blank"><img ng-src="{{picture}}"><br></a>
+    </div>
+    <br>
     <div ng-if="isLoggedIn == false">
       <button type="button" class="btn btn-default" ng-click="login()">Log in</button>
     </div>
     <div ng-if="isLoggedIn == true">
       <button type="button" class="btn btn-default" ng-click="logout()">Log out</button>
     </div>
+    <div ng-if="isLoggedIn == undefined">
+      <button type="button" class="btn btn-default" ng-click="login()">Log in</button>
+    </div>
     <br><br>
-    <div class="well">
+    <div ng-if="isLoggedIn == true" class="well">
       <h4>User info</h4>
       <ul>
-        <li>Id: {{user.id}}</li>
+        <li>ID: {{user.id}}</li>
         <li>First Name: {{user.first_name}}</li>
-        <li>Last Name:</li>
-        <li>Email:</li>
-        <li>Gender:</li>
-        <li>Location:</li>
-      </ul>df
+        <li>Last Name: {{user.last_name}}</li>
+        <li>Email: {{user.email}}</li>
+        <li>Gender: {{user.gender}}</li>
+        <li>Location: {{user.locale}}</li>
+      </ul>
     </div>
     <br>
-    <div class="well">
+    <div ng-if="isLoggedIn == true" class="well">
       <h4>Permissions</h4>
+      <ul>
+        <li ng-repeat="permission in permissions">{{permission.permission}} - {{permission.status}}</li>
+      </ul>
     </div>
   </div>
   <div class="col-md-8">
     <h3>Welcome to Facebook!</h3>
-    <form>
-      <div class="form-group">
-        <label>Status Update</label>
-        <textarea class="form-control"></textarea>
+    <div ng-if="isLoggedIn == true">
+      <form ng-submit="postStatus()">
+        <div class="form-group">
+          <label>Status Update</label>
+          <textarea ng-model="body" class="form-control"></textarea>
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+      </form>
+      <br><br>
+      <div ng-repeat="post in fullPosts" class="stbody">
+        <div class="stimg">
+          <img ng-src="{{picture}}">
+        </div>
+        <div class="sttext">
+          {{post.message}}
+          <a href="{{post.link}}"><img ng-src="{{post.picture}}"></a>
+          <div class="sttime">{{post.created_time | date:'short'}}</div>
+        </div>
       </div>
-      <button type="submit" class="btn btn-default">Submit</button>
-    </form>
+    </div>
   </div>
 </div>

@@ -10,7 +10,7 @@ angular.module('ngSocial.facebook', ['ngRoute', 'ngFacebook'])
 
   .config( function( $facebookProvider ) {
     $facebookProvider.setAppId('950965211616463');
-    $facebookProvider.setPermissions("email","public_profile","user_posts","publish_actions", "user_photos")
+    $facebookProvider.setPermissions("email,public_profile,user_posts,publish_actions,user_photos")
   })
 
   .run( function( $rootScope ) {
@@ -28,28 +28,55 @@ angular.module('ngSocial.facebook', ['ngRoute', 'ngFacebook'])
 
     $scope.login = function(){
       $facebook.login().then(function(){
-        $scope.welcomeMessage = true;
+        $scope.isLoggedIn = true;
         refresh();
       })
     };
 
     $scope.logout = function(){
       $facebook.logout().then(function(){
-        $scope.welcomeMessage = false;
+        $scope.isLoggedIn = false;
         refresh();
       })
     };
 
     function refresh(){
-      $facebook.api("/me").then(function(res){
-        $scope.user = res;
-        $scope.welcomeMessage = "Welcome " + res.name;
+      $facebook.api("/me",{ fields: 'name,last_name,first_name,email,gender,locale,link' }).then(function(response){
         $scope.isLoggedIn = true;
-      },
-      function(err){
-        $scope.welcomeMessage = "Please login"
-      })
+        $scope.user = response;
+        $scope.welcomeMessage = "Welcome " + response.name;
+          $facebook.api("/me/picture").then(function(response) {
+            $scope.picture = response.data.url
+          });
+          $facebook.api("/me/permissions").then(function(response){
+            $scope.permissions = response.data;
+          });
+          $facebook.api("/me/posts").then(function(response){
+            $scope.posts = response.data;
+            $scope.postIds = [];
+            $scope.posts.forEach(function(item){
+              $scope.postIds.push(item.id);
+            });
+            $scope.fullPosts = [];
+            $scope.postIds.forEach(function(id){
+              $facebook.api("/"+id, {fields: 'place, message, picture, link, with_tags, created_time'}).then(function(response){
+                $scope.fullPosts.push(response)
+              });
+            })
+          })
+        },
+        function(err){
+          $scope.welcomeMessage = "Please login"
+        })
     }
+
+    $scope.postStatus = function(){
+      var body = this.body;
+      $facebook.api("/me/feed", "post", {message: body}).then(function(response){
+        $scope.msg = "Thanks for posting";
+        refresh();
+      })
+    };
 
     refresh();
   }]);
